@@ -11,6 +11,7 @@
 - macOS（字体にヒラギノ角ゴシックを使う）
 - Python 3.9 以上と Pillow（`pip3 install Pillow`）
 - SVG のアイコンを使うなら librsvg（`brew install librsvg`）
+- アイコンも作るなら fontTools（`pip3 install fonttools`）と Noto Sans JP（`~/Library/Fonts/NotoSansJP[wght].ttf`）
 
 ## 使い方
 
@@ -33,6 +34,33 @@ python3 og_image.py --url https://browser.ldas.jp/ --out og-ja.jpg
 ```
 
 ページごとの項目: `url` | `html`, `out`, `title`, `description`, `icon`, `image`, `credit`, `accent`, `domain`
+
+## サイトのアイコン（site_icon.py）
+
+アイコンの無いサイトには、色の地に白い字を置いたアイコンを作ります。
+
+- 字は 1 字が基本。2 字までは作れるが、ブラウザのタブ（16px）では潰れる
+- 地の色はそのサイトの強調色。角の丸みは一辺の 22%
+- 字は線の形にして SVG に埋め込む（見る人の書体に左右されない）
+- 作るもの: `icon.svg`、`apple-touch-icon.png`（180px、角を丸めない）、`favicon.ico`（16/32/48px）
+
+```
+python3 site_icon.py --text R --bg "#c8102e" --out public
+```
+
+`og-image.json` に書けば、共有画像を作るときに一緒に作り、共有画像の左上にも使います。
+
+```json
+{"site_icon": {"text": "R", "bg": "#c8102e", "out": "public"}, "pages": [...]}
+```
+
+head に書くタグ:
+
+```html
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+```
 
 ## 運用
 

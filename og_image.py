@@ -26,6 +26,7 @@ head に無いもの・変えたいものだけ、設定ファイル（JSON）�
     ]
   }
 ページごとの項目: url | html, out, title, description, icon, image, credit, accent, domain
+アイコンも作るなら "site_icon": {"text": "R", "bg": "#c8102e", "out": "public"}（site_icon.py）
 
 字体は macOS のヒラギノ角ゴシック。SVG のアイコンは rsvg-convert（brew の librsvg）で描く。
 """
@@ -125,6 +126,8 @@ def load_bytes(ref, page_url, page_dir, base):
         return fetch(ref)[1]
     if Path(ref).expanduser().is_absolute() and Path(ref).expanduser().exists():
         return Path(ref).expanduser().read_bytes()
+    if not ref.startswith("/") and (base / ref).exists():   # 設定ファイルからの相対パスを先に見る
+        return (base / ref).read_bytes()
     if page_url and (ref.startswith("/") or page_dir is None):
         return fetch(urllib.parse.urljoin(page_url, ref))[1]
     for d in [page_dir, base]:
@@ -350,6 +353,10 @@ def main():
         path = Path(a.config).resolve()
         cfg = json.loads(path.read_text("utf-8"))
         pages, base = cfg.pop("pages"), path.parent
+        si = cfg.pop("site_icon", None)
+        if si:  # アイコンを先に作り、共有画像にもそれを使う
+            from site_icon import make_icons
+            cfg.setdefault("icon", str(make_icons(si["text"], si["bg"], base / si["out"]).resolve()))
         defaults = cfg
     elif (a.url or a.html) and a.out:
         pages = [{k: v for k, v in {"url": a.url, "html": a.html, "out": a.out, "image": a.image}.items() if v}]
